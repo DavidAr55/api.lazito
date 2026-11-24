@@ -16,6 +16,7 @@ class MeAssignmentWishlistController extends Controller
     {
         $receiver = $request->attributes->get('participant')->receiver;
 
-        return WishlistItemResource::collection($receiver->wishlistItems);
+        return WishlistItemResource::collection($receiver->wishlistItems)
+            ->additional(['note' => $receiver->wishlist_note]);
     }
 }

@@ -19,7 +19,10 @@ class WishlistItemController extends Controller
 {
     public function index(Request $request): AnonymousResourceCollection
     {
-        return WishlistItemResource::collection($request->attributes->get('participant')->wishlistItems);
+        $participant = $request->attributes->get('participant');
+
+        return WishlistItemResource::collection($participant->wishlistItems)
+            ->additional(['note' => $participant->wishlist_note]);
     }
 
     public function store(WishlistItemRequest $request): JsonResponse|WishlistItemResource

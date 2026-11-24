@@ -164,3 +164,51 @@ describe('the wishlist of the person I give a gift to', function () {
         $this->getJson("/api/v1/groups/{$this->group->slug}/me/assignment/wishlist")->assertUnauthorized();
     });
 });
+
+describe('the general comment on my wishlist', function () {
+    it('saves, returns and clears my comment', function () {
+        $url = "/api/v1/groups/{$this->group->slug}/me/wishlist-note";
+
+        $this->withToken('my-token')
+            ->putJson($url, ['note' => '  Me gustaría que mi pijama sea talla chica  '])
+            ->assertOk()
+            ->assertJsonPath('data.note', 'Me gustaría que mi pijama sea talla chica');
+
+        $this->withToken('my-token')
+            ->getJson($this->wishlistUrl)
+            ->assertOk()
+            ->assertJsonPath('note', 'Me gustaría que mi pijama sea talla chica');
+
+        $this->withToken('my-token')->putJson($url, ['note' => ''])->assertOk()->assertJsonPath('data.note', null);
+
+        expect($this->me->fresh()->wishlist_note)->toBeNull();
+    });
+
+    it('is read by the person who gives me a gift, and not by anyone else', function () {
+        $giver = Participant::query()->where('receiver_id', $this->me->id)->first();
+        $giver->forceFill(['claim_token' => 'giver-token'])->save();
+        $this->me->forceFill(['wishlist_note' => 'Talla chica'])->save();
+
+        $this->withToken('giver-token')
+            ->getJson("/api/v1/groups/{$this->group->slug}/me/assignment/wishlist")
+            ->assertOk()
+            ->assertJsonPath('note', 'Talla chica');
+
+        // The note travels with the receiver's wishlist only: another participant sees their own.
+        $this->withToken('other-token')
+            ->getJson($this->wishlistUrl)
+            ->assertOk()
+            ->assertJsonPath('note', null);
+    });
+
+    it('limits the comment to 500 characters', function () {
+        $this->withToken('my-token')
+            ->putJson("/api/v1/groups/{$this->group->slug}/me/wishlist-note", ['note' => str_repeat('a', 501)])
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors('note');
+    });
+
+    it('requires a session', function () {
+        $this->putJson("/api/v1/groups/{$this->group->slug}/me/wishlist-note", ['note' => 'hola'])->assertUnauthorized();
+    });
+});

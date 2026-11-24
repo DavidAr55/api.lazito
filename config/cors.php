@@ -19,7 +19,12 @@ return [
 
     'allowed_methods' => ['*'],
 
-    'allowed_origins' => array_filter(explode(',', (string) env('FRONTEND_URL', 'http://localhost:5174'))),
+    // Acepta varios orígenes separados por coma; quita espacios y la barra final,
+    // porque el navegador envía el Origin sin ella y la comparación es exacta.
+    'allowed_origins' => array_values(array_filter(array_map(
+        fn (string $origin) => rtrim(trim($origin), '/'),
+        explode(',', (string) env('FRONTEND_URL', 'http://localhost:5174')),
+    ))),
 
     'allowed_origins_patterns' => [],
 

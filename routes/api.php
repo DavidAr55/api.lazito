@@ -11,6 +11,7 @@ use App\Http\Controllers\Api\V1\MeController;
 use App\Http\Controllers\Api\V1\ParticipantClaimController;
 use App\Http\Controllers\Api\V1\ParticipantSessionController;
 use App\Http\Controllers\Api\V1\ProductSearchController;
+use App\Http\Controllers\Api\V1\WishlistImageController;
 use App\Http\Controllers\Api\V1\WishlistItemController;
 use App\Http\Controllers\Api\V1\WishlistNoteController;
 use App\Http\Middleware\AuthenticateParticipant;
@@ -52,6 +53,7 @@ Route::prefix('v1')->name('v1.')->group(function (): void {
         Route::post('groups/{group}/me/wishlist', [WishlistItemController::class, 'store'])->name('me.wishlist.store');
         Route::put('groups/{group}/me/wishlist/{item}', [WishlistItemController::class, 'update'])->name('me.wishlist.update');
         Route::delete('groups/{group}/me/wishlist/{item}', [WishlistItemController::class, 'destroy'])->name('me.wishlist.destroy');
+        Route::post('groups/{group}/me/wishlist-images', [WishlistImageController::class, 'store'])->name('me.wishlist-images.store');
         Route::put('groups/{group}/me/wishlist-note', [WishlistNoteController::class, 'update'])->name('me.wishlist-note.update');
     });
 });

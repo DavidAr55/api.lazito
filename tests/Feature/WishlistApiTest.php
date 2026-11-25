@@ -4,6 +4,8 @@ use App\Models\Category;
 use App\Models\Group;
 use App\Models\Participant;
 use App\Models\WishlistItem;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
 
 beforeEach(function () {
     $this->group = Group::factory()->create();
@@ -210,5 +212,34 @@ describe('the general comment on my wishlist', function () {
 
     it('requires a session', function () {
         $this->putJson("/api/v1/groups/{$this->group->slug}/me/wishlist-note", ['note' => 'hola'])->assertUnauthorized();
+    });
+});
+
+describe('uploading a photo', function () {
+    it('stores the image and returns its public url', function () {
+        Storage::fake('public');
+
+        $response = $this->withToken('my-token')
+            ->post("/api/v1/groups/{$this->group->slug}/me/wishlist-images", [
+                'image' => UploadedFile::fake()->image('captura.png'),
+            ], ['Accept' => 'application/json'])
+            ->assertCreated();
+
+        expect($response->json('data.url'))->toContain('/storage/wishlist/');
+        Storage::disk('public')->assertExists('wishlist/'.basename($response->json('data.url')));
+    });
+
+    it('rejects files that are not images', function () {
+        $this->withToken('my-token')
+            ->post("/api/v1/groups/{$this->group->slug}/me/wishlist-images", [
+                'image' => UploadedFile::fake()->create('virus.pdf', 10, 'application/pdf'),
+            ], ['Accept' => 'application/json'])
+            ->assertUnprocessable();
+    });
+
+    it('accepts long image links', function () {
+        $this->withToken('my-token')
+            ->postJson($this->wishlistUrl, itemPayload(['image_url' => 'https://tienda.example/i.jpg?'.str_repeat('a', 900)]))
+            ->assertCreated();
     });
 });

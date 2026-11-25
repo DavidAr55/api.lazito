@@ -25,8 +25,8 @@ class WishlistItemRequest extends FormRequest
                 Rule::exists('categories', 'id')->where('group_id', $group->getKey()),
             ],
             'price' => ['nullable', 'integer', 'min:0', 'max:1000000'],
-            'url' => ['nullable', 'url:http,https', 'max:500'],
-            'image_url' => ['nullable', 'url:http,https', 'max:500'],
+            'url' => ['nullable', 'url:http,https', 'max:2048'],
+            'image_url' => ['nullable', 'url:http,https', 'max:2048'],
             'note' => ['nullable', 'string', 'max:200'],
         ];
     }
@@ -45,6 +45,8 @@ class WishlistItemRequest extends FormRequest
             'price.max' => 'El precio no puede pasar de $1,000,000.',
             'url.url' => 'El enlace debe empezar con http:// o https://.',
             'image_url.url' => 'El enlace de la imagen debe empezar con http:// o https://.',
+            'url.max' => 'El enlace es demasiado largo (máximo 2,048 caracteres).',
+            'image_url.max' => 'El enlace de la imagen es demasiado largo (máximo 2,048 caracteres).',
             'note.max' => 'La nota puede tener hasta 200 caracteres.',
         ];
     }
